@@ -24,11 +24,12 @@
         th.sticky-no, th.sticky-nama { z-index: 30; }
         input[type="number"] { width: 100%; min-width: 50px; text-align: center; border: 1px solid #dee2e6; border-radius: 4px; padding: 6px 0; }
         
-        /* Floating Buttons */
         .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
         .btn-fab { border-radius: 50px; padding: 10px 15px; font-weight: 600; font-size: 12px; display: flex; gap: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         
-        #loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        /* Loader Style Update */
+        #loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+        
         @media (max-width: 768px) { :root { var(--col-name-width: 140px; } .sticky-nama { font-size: 12px; } }
         @media print { .d-print-none, .app-header, .fab-container { display: none !important; } .tab-content > .tab-pane { display: none; } #tab-rapor { display: block !important; } table { border-collapse: collapse !important; } th, td { border: 1px solid black !important; } }
     </style>
@@ -36,7 +37,11 @@
 <body>
     <div id="loader">
         <div class="spinner-border text-primary mb-3" role="status"></div>
-        <h6 class="fw-bold">Menghubungkan Database...</h6>
+        <h6 class="fw-bold" id="loaderText">Menghubungkan Database...</h6>
+        <small class="text-muted" id="loaderSub">Mohon tunggu sebentar</small>
+        <div id="slowNetMsg" class="mt-3 text-warning" style="display:none; max-width: 300px; font-size: 12px;">
+            <i class="bi bi-exclamation-circle"></i> Server Google sedang dibangunkan (Cold Start).<br>Ini bisa memakan waktu 5-10 detik.
+        </div>
     </div>
 
     <div class="app-header d-print-none">
@@ -44,7 +49,7 @@
             <div class="logo-area me-3"><img src="https://iili.io/fx9qBjt.png" alt="Logo"></div>
             <div class="school-info flex-grow-1">
                 <h5 class="m-0 fw-bold">SMK NEGERI 1 MALUKU TENGAH</h5>
-                <small class="text-secondary">Aplikasi Nilai Pendidikan Agama dan Budi Pekerti - TP. 2025/2026</small>
+                <small class="text-secondary">Aplikasi Nilai PABP - TP. 2025/2026</small>
             </div>
             <div class="controls-area mt-2 mt-md-0">
                 <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Cari Siswa...">
@@ -114,7 +119,6 @@
         <button class="btn btn-success btn-fab shadow mb-2" onclick="downloadExcel()">
             <i class="bi bi-file-earmark-excel-fill"></i> Excel
         </button>
-        
         <button class="btn btn-secondary btn-fab shadow mb-2" onclick="window.print()">
             <i class="bi bi-printer-fill"></i> Cetak
         </button>
@@ -130,15 +134,21 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
     <script>
-        // --- MASUKKAN URL GOOGLE SCRIPT ANDA ---
-        const API_URL = "https://script.google.com/macros/s/AKfycby6QAdmb2VxzpdMAmGqg-D2hFqBjhMoQMJoIdSin3ElVY1ZahFFu1xXueMQ8wfpt7vPTQ/exec"; 
-        // ---------------------------------------
+        // --- MASUKKAN URL GOOGLE SCRIPT ANDA DISINI ---
+        const API_URL = "https://script.google.com/macros/s/AKfycbxRDsSwo_eaNwFoT0CfIpYvh2awFfHdu5yzkd5FJVMc31EoLsY02oeFyOXrw9FFbBfaUg/exec"; 
+        // ----------------------------------------------
 
         let GLOBAL_DATA = [];
         let isDirty = false;
 
         window.onload = function() {
-            document.getElementById('loader').style.display = 'flex';
+            // Tampilkan pesan jika loading lebih dari 4 detik
+            setTimeout(() => {
+                if(document.getElementById('loader').style.display !== 'none') {
+                    document.getElementById('slowNetMsg').style.display = 'block';
+                }
+            }, 4000);
+
             fetch(API_URL + "?action=read")
                 .then(res => res.json())
                 .then(data => {
@@ -148,6 +158,7 @@
                 })
                 .catch(err => {
                     document.getElementById('loader').innerHTML = `<h6 class="text-danger">Gagal! Cek URL API.</h6><small>${err}</small>`;
+                    console.error(err);
                 });
         };
 
@@ -155,15 +166,21 @@
             renderDataSiswa(); renderFormatif(); renderSumatif(); renderRapor();
         }
 
-        // TAMPILAN: TTL Dulu (Index 4), Baru JK (Index 3)
         function renderDataSiswa() {
-            document.getElementById('bodyDataSiswa').innerHTML = GLOBAL_DATA.map((r, i) => 
+            const tbody = document.getElementById('bodyDataSiswa');
+            if(!GLOBAL_DATA || GLOBAL_DATA.length === 0) {
+                 tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">Data masih kosong di Google Sheet</td></tr>';
+                 return;
+            }
+            tbody.innerHTML = GLOBAL_DATA.map((r, i) => 
                 `<tr>
                     <td class="sticky-no">${i+1}</td>
                     <td class="sticky-nama">${r[0]}</td>
                     <td>${r[1]}</td>
                     <td>${r[2]}</td>
-                    <td class="text-start">${r[4]}</td> <td>${r[3]}</td> </tr>`
+                    <td class="text-start">${r[4]}</td>
+                    <td>${r[3]}</td>
+                </tr>`
             ).join('');
         }
 
@@ -185,10 +202,8 @@
             document.getElementById('bodyRapor').innerHTML = GLOBAL_DATA.map((r, i) => {
                 let calc = calculateScore(r);
                 const v = (idx) => r[idx]!==""?r[idx]:"-";
-                
                 return `<tr class="text-center">
-                    <td>${i+1}</td>
-                    <td class="text-start sticky-nama">${r[0]}</td>
+                    <td>${i+1}</td><td class="text-start sticky-nama">${r[0]}</td>
                     <td>${v(1)}</td><td>${v(2)}</td><td>${v(3)}</td>
                     <td>${v(5)}</td><td>${v(6)}</td><td>${v(7)}</td><td>${v(8)}</td><td>${v(9)}</td>
                     <td>${v(10)}</td><td>${v(11)}</td><td>${v(12)}</td><td>${v(13)}</td>
@@ -213,7 +228,7 @@
             document.getElementById('btnSaveText').innerText="Menyimpan..."; document.getElementById('btnSave').disabled=true;
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'save', data: GLOBAL_DATA }) })
                 .then(r => r.json()).then(d => { alert(d.message); isDirty=false; document.getElementById('btnSaveText').innerText="Simpan"; })
-                .catch(e => { alert("Tersimpan (CORS Check). Silakan refresh sheet."); isDirty=false; document.getElementById('btnSaveText').innerText="Simpan"; });
+                .catch(e => { alert("Tersimpan (Cek Sheet Anda)."); isDirty=false; document.getElementById('btnSaveText').innerText="Simpan"; });
         }
 
         function resetData() {
@@ -223,21 +238,34 @@
             }
         }
 
-        // FUNGSI DOWNLOAD EXCEL BARU
         function downloadExcel() {
-            if(!GLOBAL_DATA || GLOBAL_DATA.length === 0) { alert("Belum ada data untuk didownload"); return; }
-            
-            // 1. Buat Header
+            if(!GLOBAL_DATA || GLOBAL_DATA.length === 0) { alert("Belum ada data."); return; }
             let headers = ["No", "Nama Siswa", "NIS", "NISN", "Tempat Tanggal Lahir", "JK", "TP1", "TP2", "TP3", "TP4", "TP5", "LM1", "LM2", "LM3", "SAS", "Nilai Akhir"];
-            
-            // 2. Buat Isi Data (Disusun sesuai urutan header)
-            let data = [
-                ["REKAP NILAI PABP - SMK NEGERI 1 MALUKU TENGAH"],
-                ["TP. 2025/2026"],
-                [], // Baris kosong
-                headers
-            ];
-
+            let data = [ ["REKAP NILAI PABP"], ["TP. 2025/2026"], [], headers ];
             GLOBAL_DATA.forEach((row, idx) => {
                 let calc = calculateScore(row);
-                let
+                data.push([
+                    idx + 1, row[0], row[1], row[2], row[4], row[3],
+                    row[5], row[6], row[7], row[8], row[9],
+                    row[10], row[11], row[12], row[13], calc.na
+                ]);
+            });
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.aoa_to_sheet(data);
+            ws['!cols'] = [{wch:5}, {wch:30}, {wch:10}, {wch:15}, {wch:25}, {wch:5}];
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap Nilai");
+            XLSX.writeFile(wb, "Rekap_Nilai_PABP.xlsx");
+        }
+
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            let term = e.target.value.toLowerCase();
+            document.querySelectorAll('tbody tr').forEach(tr => {
+                let name = tr.querySelector('.sticky-nama').innerText.toLowerCase();
+                tr.style.display = name.includes(term) ? '' : 'none';
+            });
+        });
+        
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(t => { t.addEventListener('shown.bs.tab', renderAll); });
+    </script>
+</body>
+</html>
