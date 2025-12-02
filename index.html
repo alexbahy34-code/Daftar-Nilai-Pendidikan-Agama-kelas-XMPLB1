@@ -62,7 +62,7 @@
                 <div class="logo-area me-3"><img src="https://iili.io/fx9qBjt.png" alt="Logo"></div>
                 <div class="school-info flex-grow-1">
                     <h5 class="m-0 fw-bold">SMK NEGERI 1 MALUKU TENGAH</h5>
-                    <small class="text-secondary">Aplikasi Nilai PABP - TP. 2025/2026</small>
+                    <small class="text-secondary">Aplikasi Nilai Pend. Agama dan Budi Pekerti - TP. 2025/2026</small>
                 </div>
                 <div class="controls-area mt-2 mt-md-0 d-flex gap-2">
                     <button class="btn btn-outline-danger btn-sm" onclick="doLogout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
@@ -116,7 +116,7 @@
                 </div>
                 <div class="tab-pane fade" id="tab-rapor">
                     <div id="printArea" class="bg-white p-4 mt-3 rounded shadow-sm">
-                        <div class="text-center mb-4 border-bottom pb-3"><h4 class="fw-bold">REKAP NILAI PABP</h4></div>
+                        <div class="text-center mb-4 border-bottom pb-3"><h4 class="fw-bold">Rekap Nilai Pend. Agama dan Budi Pekerti</h4></div>
                         <table class="table table-bordered table-sm w-100" style="font-size: 12px;">
                             <thead class="table-light text-center align-middle">
                                 <tr><th rowspan="2">No</th><th rowspan="2">Nama Siswa</th><th colspan="3">Identitas</th><th colspan="5">Formatif</th><th colspan="3">Sumatif</th><th rowspan="2">SAS</th><th rowspan="2">NA</th></tr>
@@ -286,7 +286,7 @@
         function downloadExcel() {
             if(!GLOBAL_DATA || GLOBAL_DATA.length === 0) { alert("Belum ada data."); return; }
             let headers = ["No", "Nama Siswa", "NIS", "NISN", "Tempat Tanggal Lahir", "JK", "TP1", "TP2", "TP3", "TP4", "TP5", "LM1", "LM2", "LM3", "SAS", "Nilai Akhir"];
-            let data = [ ["REKAP NILAI PABP"], ["TP. 2025/2026"], [], headers ];
+            let data = [ ["REKAP NILAI PEND. AGAMA DAN BUDI PEKERTI"], ["TP. 2025/2026"], [], headers ];
             GLOBAL_DATA.forEach((row, idx) => {
                 let calc = calculateScore(row);
                 data.push([
@@ -299,7 +299,7 @@
             let ws = XLSX.utils.aoa_to_sheet(data);
             ws['!cols'] = [{wch:5}, {wch:30}, {wch:10}, {wch:15}, {wch:25}, {wch:5}];
             XLSX.utils.book_append_sheet(wb, ws, "Rekap Nilai");
-            XLSX.writeFile(wb, "Rekap_Nilai_PABP.xlsx");
+            XLSX.writeFile(wb, "Rekap_Nilai_Pend. Agama dan Budi Pekerti.xlsx");
         }
 
         document.getElementById('searchInput').addEventListener('keyup', function(e) {
@@ -319,5 +319,6 @@
     </script>
 </body>
 </html>
+
 
 
