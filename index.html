@@ -59,7 +59,16 @@
                 <div class="card shadow-sm border-0 rounded-4 overflow-hidden mt-3">
                     <div class="table-container">
                         <table class="table mb-0 table-hover table-striped">
-                            <thead><tr><th class="sticky-no">No</th><th class="sticky-nama">Nama Siswa</th><th>NIS</th><th>NISN</th><th>JK</th><th>TTL</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th class="sticky-no">No</th>
+                                    <th class="sticky-nama">Nama Siswa</th>
+                                    <th>NIS</th>
+                                    <th>NISN</th>
+                                    <th>Tempat Tanggal Lahir</th>
+                                    <th>JK</th>
+                                </tr>
+                            </thead>
                             <tbody id="bodyDataSiswa"></tbody>
                         </table>
                     </div>
@@ -108,9 +117,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- MASUKKAN URL GOOGLE SCRIPT BARU ANDA DISINI ---
-        const API_URL = "https://script.google.com/macros/s/AKfycbyArTSWZrxu7Pr3EyJ7q4WwqfPUvOEfFP6VN0kpiykSKOLnAQIyDC_fWAkV_LPMy5DQHg/exec"; 
-        // --------------------------------------------------
+        // --- MASUKKAN URL GOOGLE SCRIPT ANDA ---
+        const API_URL = "GANTI_DENGAN_URL_WEB_APP_ANDA_DISINI"; 
+        // ---------------------------------------
 
         let GLOBAL_DATA = [];
         let isDirty = false;
@@ -135,7 +144,13 @@
 
         function renderDataSiswa() {
             document.getElementById('bodyDataSiswa').innerHTML = GLOBAL_DATA.map((r, i) => 
-                `<tr><td class="sticky-no">${i+1}</td><td class="sticky-nama">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[4]}</td><td class="text-start">${r[3]}</td></tr>`
+                // PERBAIKAN URUTAN DATA: r[4] (TTL) dulu, baru r[3] (JK)
+                `<tr>
+                    <td class="sticky-no">${i+1}</td>
+                    <td class="sticky-nama">${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td class="text-start">${r[4]}</td> <td>${r[3]}</td> </tr>`
             ).join('');
         }
 
@@ -159,10 +174,17 @@
                 let sas = Number(r[13])||0;
                 let na = (cLM>0 || sas>0) ? ((cLM>0?sLM/cLM:0)*0.6 + sas*0.4) : 0;
                 const v = (idx) => r[idx]!==""?r[idx]:"-";
-                return `<tr class="text-center"><td>${i+1}</td><td class="text-start sticky-nama">${r[0]}</td><td>${v(1)}</td><td>${v(2)}</td><td>${v(4)}</td>
-                <td>${v(5)}</td><td>${v(6)}</td><td>${v(7)}</td><td>${v(8)}</td><td>${v(9)}</td>
-                <td>${v(10)}</td><td>${v(11)}</td><td>${v(12)}</td><td>${v(13)}</td>
-                <td class="fw-bold bg-light">${na>0?na.toFixed(0):''}</td></tr>`;
+                
+                // PERBAIKAN KOLOM RAPOR: Gunakan v(3) untuk JK, bukan v(4)
+                return `<tr class="text-center">
+                    <td>${i+1}</td>
+                    <td class="text-start sticky-nama">${r[0]}</td>
+                    <td>${v(1)}</td>
+                    <td>${v(2)}</td>
+                    <td>${v(3)}</td> <td>${v(5)}</td><td>${v(6)}</td><td>${v(7)}</td><td>${v(8)}</td><td>${v(9)}</td>
+                    <td>${v(10)}</td><td>${v(11)}</td><td>${v(12)}</td><td>${v(13)}</td>
+                    <td class="fw-bold bg-light">${na>0?na.toFixed(0):''}</td>
+                </tr>`;
             }).join('');
         }
 
@@ -185,7 +207,6 @@
             }
         }
 
-        // Search
         document.getElementById('searchInput').addEventListener('keyup', function(e) {
             let term = e.target.value.toLowerCase();
             document.querySelectorAll('tbody tr').forEach(tr => {
@@ -194,7 +215,6 @@
             });
         });
         
-        // Tab Event Refresh
         document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(t => {
             t.addEventListener('shown.bs.tab', renderAll);
         });
